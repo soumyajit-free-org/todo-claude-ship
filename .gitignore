@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+vendor/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Build output
+dist/
+build/
+out/
+*.egg-info/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Claude Code
+.claude*
+
+# SpecKit local state
+.specify/memory/
+
+# Local databases
+*.db
+*.sqlite3
