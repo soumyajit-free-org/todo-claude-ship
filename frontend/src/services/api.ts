@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios'
-import type { Todo, TokenResponse, User } from '../types'
+import type { PaginatedResponse, Todo, TokenResponse, User } from '../types'
 
 export const TOKEN_KEY = 'access_token'
 
@@ -41,6 +41,17 @@ export function errorMessage(error: unknown): string {
   return 'Something went wrong. Please try again.'
 }
 
+export interface TodoListParams {
+  completed?: boolean
+  q?: string
+  priority?: string
+  due?: string
+  sort?: string
+  order?: string
+  cursor?: string
+  limit?: number
+}
+
 export const authApi = {
   register: (email: string, password: string) =>
     api.post<User>('/auth/register', { email, password }).then((r) => r.data),
@@ -52,10 +63,13 @@ export const authApi = {
 }
 
 export const todoApi = {
-  list: () => api.get<Todo[]>('/todos').then((r) => r.data),
-  create: (title: string, description?: string) =>
-    api.post<Todo>('/todos', { title, description: description || null }).then((r) => r.data),
-  update: (id: number, data: Partial<Pick<Todo, 'title' | 'description' | 'is_completed'>>) =>
+  list: (params?: TodoListParams) =>
+    api.get<PaginatedResponse<Todo>>('/todos', { params }).then((r) => r.data),
+  create: (data: { title: string; description?: string | null; due_date?: string | null; priority?: string }) =>
+    api.post<Todo>('/todos', data).then((r) => r.data),
+  update: (id: number, data: Partial<Pick<Todo, 'title' | 'description' | 'is_completed' | 'due_date' | 'priority'>>) =>
     api.put<Todo>(`/todos/${id}`, data).then((r) => r.data),
   remove: (id: number) => api.delete(`/todos/${id}`).then(() => undefined),
+  updatePosition: (id: number, data: { before_id?: number; after_id?: number }) =>
+    api.patch<Todo>(`/todos/${id}/position`, data).then((r) => r.data),
 }

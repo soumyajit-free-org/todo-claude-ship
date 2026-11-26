@@ -1,0 +1,94 @@
+/* Design tokens — light theme defaults */
+:root {
+  /* Colors */
+  --bg: #f4f5f8;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --border: #c5c9d6;
+  --border-light: #e1e4ec;
+  --text: #1f2430;
+  --text-muted: #5c6275;
+  --accent: #3b5bdb;
+  --accent-hover: #3251c4;
+  --accent-contrast: #ffffff;
+  --danger: #c92a2a;
+  --danger-hover: #b02525;
+  --success: #2b8a3e;
+  --success-hover: #237032;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 2px 10px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.1);
+
+  /* Typography */
+  --font-sm: 0.85rem;
+  --font-base: 1rem;
+  --font-lg: 1.25rem;
+  --font-xl: 1.5rem;
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark theme — explicit selection */
+:root[data-theme="dark"] {
+  --bg: #1a1b26;
+  --surface: #24253a;
+  --surface-raised: #2c2d44;
+  --border: #3d3e58;
+  --border-light: #33344d;
+  --text: #e2e4f0;
+  --text-muted: #9499b3;
+  --accent: #5c7cfa;
+  --accent-hover: #748ffc;
+  --accent-contrast: #ffffff;
+  --danger: #ff6b6b;
+  --danger-hover: #fa5252;
+  --success: #51cf66;
+  --success-hover: #40c057;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 10px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* System dark mode fallback — only when no explicit data-theme is set */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #1a1b26;
+    --surface: #24253a;
+    --surface-raised: #2c2d44;
+    --border: #3d3e58;
+    --border-light: #33344d;
+    --text: #e2e4f0;
+    --text-muted: #9499b3;
+    --accent: #5c7cfa;
+    --accent-hover: #748ffc;
+    --accent-contrast: #ffffff;
+    --danger: #ff6b6b;
+    --danger-hover: #fa5252;
+    --success: #51cf66;
+    --success-hover: #40c057;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 2px 10px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+}

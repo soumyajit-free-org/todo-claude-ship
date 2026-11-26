@@ -7,14 +7,14 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str
     DATABASE_URL: str
+    TEST_DATABASE_URL: str = ""
     CORS_ORIGINS: str = "http://localhost:5173"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     JWT_ALGORITHM: str = "HS256"
 
-    @field_validator("DATABASE_URL")
+    @field_validator("DATABASE_URL", "TEST_DATABASE_URL")
     @classmethod
     def _use_psycopg3_driver(cls, v: str) -> str:
-        # psycopg (v3) is the installed driver; bare "postgresql://" would select psycopg2.
         if v.startswith("postgresql://"):
             return "postgresql+psycopg://" + v[len("postgresql://"):]
         return v

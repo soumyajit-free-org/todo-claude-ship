@@ -1,10 +1,11 @@
 import os
+import sys
 
 from dotenv import load_dotenv
 
 load_dotenv()
 os.environ.setdefault("SECRET_KEY", "test-secret-key")
-os.environ.setdefault("DATABASE_URL", "sqlite:///./test_bootstrap.db")
+os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://localhost/todo_app")
 
 from collections.abc import AsyncGenerator, Generator  # noqa: E402
 
@@ -13,24 +14,30 @@ import pytest_asyncio  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
 from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import Session, sessionmaker  # noqa: E402
-from sqlalchemy.pool import StaticPool  # noqa: E402
 
 import app.models  # noqa: E402, F401
+from app.core.config import settings  # noqa: E402
 from app.core.database import Base, get_db  # noqa: E402
 from app.main import app as fastapi_app  # noqa: E402
 
-TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL", "sqlite://")
+TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL", settings.TEST_DATABASE_URL)
 if TEST_DATABASE_URL.startswith("postgresql://"):
     TEST_DATABASE_URL = "postgresql+psycopg://" + TEST_DATABASE_URL[len("postgresql://"):]
 
+if not TEST_DATABASE_URL:
+    sys.exit("ERROR: TEST_DATABASE_URL is not set. Tests require a dedicated test database.")
+
+_app_db = os.environ.get("DATABASE_URL", "")
+if _app_db.startswith("postgresql://"):
+    _app_db = "postgresql+psycopg://" + _app_db[len("postgresql://"):]
+if TEST_DATABASE_URL == _app_db:
+    sys.exit(
+        "ERROR: TEST_DATABASE_URL must not equal DATABASE_URL. "
+        "Tests require a separate database to avoid wiping application data."
+    )
+
 
 def _make_engine():
-    if TEST_DATABASE_URL.startswith("sqlite"):
-        return create_engine(
-            TEST_DATABASE_URL,
-            connect_args={"check_same_thread": False},
-            poolclass=StaticPool,
-        )
     return create_engine(TEST_DATABASE_URL, pool_pre_ping=True)
 
 
