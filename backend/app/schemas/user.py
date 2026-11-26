@@ -5,7 +5,7 @@ from app.schemas.types import UTCDatetime
 
 class UserCreate(BaseModel):
     email: EmailStr = Field(max_length=255)
-    password: str = Field(min_length=8)
+    password: str = Field(min_length=8, max_length=72)
 
 
 class UserResponse(BaseModel):

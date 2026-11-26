@@ -6,6 +6,8 @@ from app.core.security import hash_password, verify_password
 from app.models.user import User
 from app.schemas.user import UserCreate
 
+_DUMMY_HASH = hash_password("dummy-password-for-timing")
+
 
 class EmailAlreadyRegisteredError(Exception):
     pass
@@ -31,6 +33,9 @@ def create_user(db: Session, data: UserCreate) -> User:
 
 def authenticate_user(db: Session, email: str, password: str) -> User | None:
     user = get_user_by_email(db, email)
-    if user is None or not verify_password(password, user.hashed_password):
+    if user is None:
+        verify_password(password, _DUMMY_HASH)  # equalise timing with the real-user path
+        return None
+    if not verify_password(password, user.hashed_password):
         return None
     return user

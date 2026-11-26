@@ -20,6 +20,8 @@ from app.core.database import Base, get_db  # noqa: E402
 from app.main import app as fastapi_app  # noqa: E402
 
 TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL", "sqlite://")
+if TEST_DATABASE_URL.startswith("postgresql://"):
+    TEST_DATABASE_URL = "postgresql+psycopg://" + TEST_DATABASE_URL[len("postgresql://"):]
 
 
 def _make_engine():

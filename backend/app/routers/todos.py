@@ -10,7 +10,8 @@ from app.services import todo_service
 
 router = APIRouter(prefix="/todos", tags=["todos"])
 
-NOT_FOUND = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Todo not found")
+def not_found() -> HTTPException:
+    return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Todo not found")
 
 
 @router.get("", response_model=list[TodoResponse])
@@ -41,7 +42,7 @@ def update_todo(
     try:
         return todo_service.update_todo(db, current_user, todo_id, data)
     except todo_service.TodoNotFoundError:
-        raise NOT_FOUND from None
+        raise not_found() from None
 
 
 @router.delete("/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -53,5 +54,5 @@ def delete_todo(
     try:
         todo_service.delete_todo(db, current_user, todo_id)
     except todo_service.TodoNotFoundError:
-        raise NOT_FOUND from None
+        raise not_found() from None
     return Response(status_code=status.HTTP_204_NO_CONTENT)

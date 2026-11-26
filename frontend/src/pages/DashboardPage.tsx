@@ -21,7 +21,8 @@ export default function DashboardPage() {
     todoApi
       .list()
       .then((data) => {
-        if (!cancelled) setTodos(data)
+        if (!cancelled)
+          setTodos((prev) => [...prev.filter((p) => !data.some((d) => d.id === p.id)), ...data])
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(errorMessage(err))
