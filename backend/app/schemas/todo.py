@@ -12,14 +12,14 @@ def _clean_title(value: str) -> str:
 
 class TodoCreate(BaseModel):
     title: str = Field(max_length=255)
-    description: str | None = None
+    description: str | None = Field(default=None, max_length=2000)
 
     _check_title = field_validator("title")(_clean_title)
 
 
 class TodoUpdate(BaseModel):
     title: str | None = Field(default=None, max_length=255)
-    description: str | None = None
+    description: str | None = Field(default=None, max_length=2000)
     is_completed: bool | None = None
 
     @field_validator("title")
