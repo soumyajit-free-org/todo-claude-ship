@@ -10,8 +10,6 @@ export default function SearchBox({ value, onChange }: Props) {
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => { setLocal(value) }, [value])
-
   const debounce = useCallback(
     (v: string) => {
       clearTimeout(timer.current)

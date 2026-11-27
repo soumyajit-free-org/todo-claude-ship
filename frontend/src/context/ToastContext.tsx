@@ -1,26 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useReducer,
-  useCallback,
-  useRef,
-  type ReactNode,
-} from 'react'
-
-export type ToastVariant = 'success' | 'error' | 'info'
-
-export interface Toast {
-  id: string
-  message: string
-  variant: ToastVariant
-  action?: { label: string; onClick: () => void }
-}
-
-interface ToastContextType {
-  toasts: Toast[]
-  addToast: (toast: Omit<Toast, 'id'>) => string
-  removeToast: (id: string) => void
-}
+import { useReducer, useCallback, useRef, type ReactNode } from 'react'
+import { ToastContext, type Toast } from './toast'
 
 type Action =
   | { type: 'ADD'; toast: Toast }
@@ -38,8 +17,6 @@ function reducer(state: Toast[], action: Action): Toast[] {
       return state.filter((t) => t.id !== action.id)
   }
 }
-
-const ToastContext = createContext<ToastContextType | null>(null)
 
 let nextId = 0
 
@@ -100,12 +77,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       />
     </ToastContext.Provider>
   )
-}
-
-export function useToast(): ToastContextType {
-  const ctx = useContext(ToastContext)
-  if (!ctx) throw new Error('useToast must be used within ToastProvider')
-  return ctx
 }
 
 function ToastStack({

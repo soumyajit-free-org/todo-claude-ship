@@ -13,7 +13,7 @@ import SortDropdown from '../components/SortDropdown'
 import TaskCounter from '../components/TaskCounter'
 import TodoList from '../components/TodoList'
 import { useOptimistic } from '../hooks/useOptimistic'
-import { useToast } from '../context/ToastContext'
+import { useToast } from '../context/toast'
 import { errorMessage, todoApi } from '../services/api'
 import type { DueFilter, Filter, Priority, SortOption, Todo } from '../types'
 
@@ -39,8 +39,16 @@ export default function DashboardPage() {
   const [order, setOrder] = useState<'asc' | 'desc'>(
     (searchParams.get('order') as 'asc' | 'desc') || 'desc',
   )
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const queryKey = JSON.stringify([filter, search, priorities, dueFilter, sort, order])
+  const [loadedKey, setLoadedKey] = useState<string | null>(null)
+  const [failure, setFailure] = useState<{ key: string; message: string } | null>(null)
+  const [today] = useState(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  })
+  const loading = loadedKey !== queryKey && failure?.key !== queryKey
+  const error = failure?.key === queryKey ? failure.message : null
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [, setTotalCount] = useState(0)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -79,24 +87,20 @@ export default function DashboardPage() {
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
-    setError(null)
     fetchTodos()
       .then((resp) => {
         if (!cancelled) {
           setItems(resp.items)
           setNextCursor(resp.next_cursor)
           setTotalCount(resp.total_count)
+          setLoadedKey(queryKey)
         }
       })
       .catch((err: unknown) => {
-        if (!cancelled) setError(errorMessage(err))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) setFailure({ key: queryKey, message: errorMessage(err) })
       })
     return () => { cancelled = true }
-  }, [fetchTodos, setItems])
+  }, [fetchTodos, setItems, queryKey])
 
   useEffect(() => {
     const timers = pendingDeletes.current
@@ -130,7 +134,7 @@ export default function DashboardPage() {
   }
 
   const toggleTodo = useCallback(
-    async (todo: Todo) => {
+    async function toggle(todo: Todo): Promise<void> {
       const reqId = apply(todo.id, { is_completed: !todo.is_completed })
       try {
         const updated = await todoApi.update(todo.id, { is_completed: !todo.is_completed })
@@ -140,7 +144,7 @@ export default function DashboardPage() {
         addToast({
           message: errorMessage(err),
           variant: 'error',
-          action: { label: 'Retry', onClick: () => toggleTodo(todo) },
+          action: { label: 'Retry', onClick: () => toggle(todo) },
         })
       }
     },
@@ -191,11 +195,10 @@ export default function DashboardPage() {
 
   const activeCount = useMemo(() => todos.filter((t) => !t.is_completed).length, [todos])
 
-  const overdueCount = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return todos.filter((t) => t.due_date && !t.is_completed && new Date(t.due_date + 'T00:00:00') < today).length
-  }, [todos])
+  const overdueCount = useMemo(
+    () => todos.filter((t) => t.due_date && !t.is_completed && new Date(t.due_date + 'T00:00:00') < today).length,
+    [todos, today],
+  )
 
   const dragDisabled = sort !== 'position' || filter !== 'all' || !!search || priorities.length > 0 || !!dueFilter
 
