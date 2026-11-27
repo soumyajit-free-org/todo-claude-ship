@@ -1,11 +1,4 @@
-# Claude Approvals policy for todo-claude-ship
-# Docs: https://code.claude.com/docs/en/approvals-policy
-#
-# Start in observe mode to see what Approvals would decide
-# without blocking any merges. Remove "mode: observe" to enforce.
-
 version: 1
-mode: observe
 
 rules:
   # Default rule: two people must approve.
