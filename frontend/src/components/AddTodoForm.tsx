@@ -1,14 +1,26 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { errorMessage } from '../services/api'
+import type { Priority } from '../types'
 
 interface Props {
-  onAdd: (title: string, description?: string) => Promise<void>
+  onAdd: (data: { title: string; description?: string; due_date?: string; priority?: Priority }) => Promise<void>
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10)
+}
+function addDays(days: number) {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  return d.toISOString().slice(0, 10)
 }
 
 export default function AddTodoForm({ onAdd }: Props) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [dueDate, setDueDate] = useState('')
+  const [priority, setPriority] = useState<Priority>('medium')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -26,9 +38,16 @@ export default function AddTodoForm({ onAdd }: Props) {
     setError(null)
     setSubmitting(true)
     try {
-      await onAdd(trimmed, description.trim() || undefined)
+      await onAdd({
+        title: trimmed,
+        description: description.trim() || undefined,
+        due_date: dueDate || undefined,
+        priority,
+      })
       setTitle('')
       setDescription('')
+      setDueDate('')
+      setPriority('medium')
     } catch (err) {
       setError(errorMessage(err))
     } finally {
@@ -53,7 +72,32 @@ export default function AddTodoForm({ onAdd }: Props) {
         onChange={(e) => setDescription(e.target.value)}
         aria-label="Task description"
       />
-      <button type="submit" disabled={submitting}>{submitting ? 'Adding…' : 'Add'}</button>
+      <div className="add-form-row">
+        <div className="add-form-date">
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            aria-label="Due date"
+          />
+          <div className="quick-picks">
+            <button type="button" className="btn-ghost" onClick={() => setDueDate(todayStr())}>Today</button>
+            <button type="button" className="btn-ghost" onClick={() => setDueDate(addDays(1))}>Tomorrow</button>
+            <button type="button" className="btn-ghost" onClick={() => setDueDate(addDays(7))}>Next week</button>
+          </div>
+        </div>
+        <select
+          value={priority}
+          onChange={(e) => setPriority(e.target.value as Priority)}
+          aria-label="Priority"
+          className="priority-select"
+        >
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+        <button type="submit" disabled={submitting}>{submitting ? 'Adding…' : 'Add'}</button>
+      </div>
       {error && <p role="alert" className="error">{error}</p>}
     </form>
   )

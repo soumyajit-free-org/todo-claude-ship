@@ -1,44 +1,20 @@
-import { useRef, useState } from 'react'
-import { errorMessage, todoApi } from '../services/api'
+import { useState } from 'react'
 import type { Todo } from '../types'
+import DueDateChip from './DueDateChip'
+import PriorityBadge from './PriorityBadge'
 
 interface Props {
   todo: Todo
-  onChange: (todo: Todo) => void
+  onToggle: (todo: Todo) => void
+  onEdit: (id: number, data: Partial<Pick<Todo, 'title' | 'description'>>) => void
   onDelete: (id: number) => void
 }
 
-export default function TodoItem({ todo, onChange, onDelete }: Props) {
+export default function TodoItem({ todo, onToggle, onEdit, onDelete }: Props) {
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState(todo.title)
   const [description, setDescription] = useState(todo.description ?? '')
   const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const inFlight = useRef(false)
-
-  const run = async (action: () => Promise<void>) => {
-    if (inFlight.current) return
-    inFlight.current = true
-    setBusy(true)
-    setError(null)
-    try {
-      await action()
-    } catch (err) {
-      setError(errorMessage(err))
-    } finally {
-      inFlight.current = false
-      setBusy(false)
-    }
-  }
-
-  const toggle = () =>
-    run(async () => onChange(await todoApi.update(todo.id, { is_completed: !todo.is_completed })))
-
-  const remove = () =>
-    run(async () => {
-      await todoApi.remove(todo.id)
-      onDelete(todo.id)
-    })
 
   const save = () => {
     const trimmed = title.trim()
@@ -46,14 +22,9 @@ export default function TodoItem({ todo, onChange, onDelete }: Props) {
       setError('Title cannot be empty.')
       return
     }
-    return run(async () => {
-      const updated = await todoApi.update(todo.id, {
-        title: trimmed,
-        description: description.trim() || null,
-      })
-      onChange(updated)
-      setEditing(false)
-    })
+    onEdit(todo.id, { title: trimmed, description: description.trim() || null })
+    setEditing(false)
+    setError(null)
   }
 
   const cancel = () => {
@@ -66,10 +37,29 @@ export default function TodoItem({ todo, onChange, onDelete }: Props) {
   if (editing) {
     return (
       <li className="todo-item editing">
-        <input value={title} maxLength={255} onChange={(e) => setTitle(e.target.value)} aria-label="Edit title" />
-        <input value={description} onChange={(e) => setDescription(e.target.value)} aria-label="Edit description" />
-        <button type="button" onClick={save} disabled={busy}>Save</button>
-        <button type="button" onClick={cancel} disabled={busy}>Cancel</button>
+        <input
+          type="text"
+          value={title}
+          maxLength={255}
+          onChange={(e) => setTitle(e.target.value)}
+          aria-label="Edit title"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') save()
+            if (e.key === 'Escape') cancel()
+          }}
+        />
+        <input
+          type="text"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          aria-label="Edit description"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') save()
+            if (e.key === 'Escape') cancel()
+          }}
+        />
+        <button type="button" className="btn-primary" onClick={save}>Save</button>
+        <button type="button" className="btn-ghost" onClick={cancel}>Cancel</button>
         {error && <p role="alert" className="error">{error}</p>}
       </li>
     )
@@ -79,18 +69,30 @@ export default function TodoItem({ todo, onChange, onDelete }: Props) {
     <li className="todo-item">
       <input
         type="checkbox"
+        className="todo-checkbox"
         checked={todo.is_completed}
-        onChange={toggle}
-        disabled={busy}
+        onChange={() => onToggle(todo)}
         aria-label={`Mark "${todo.title}" as ${todo.is_completed ? 'active' : 'completed'}`}
       />
       <div className={todo.is_completed ? 'todo-text done' : 'todo-text'}>
         <span className="todo-title">{todo.title}</span>
         {todo.description && <span className="todo-desc">{todo.description}</span>}
+        <div className="todo-meta">
+          <PriorityBadge priority={todo.priority} />
+          {todo.due_date && <DueDateChip dueDate={todo.due_date} />}
+        </div>
       </div>
-      <button type="button" onClick={() => setEditing(true)} disabled={busy}>Edit</button>
-      <button type="button" onClick={remove} disabled={busy} aria-label={`Delete "${todo.title}"`}>Delete</button>
-      {error && <p role="alert" className="error">{error}</p>}
+      <div className="todo-actions">
+        <button type="button" className="btn-ghost" onClick={() => setEditing(true)}>Edit</button>
+        <button
+          type="button"
+          className="btn-danger"
+          onClick={() => onDelete(todo.id)}
+          aria-label={`Delete "${todo.title}"`}
+        >
+          Delete
+        </button>
+      </div>
     </li>
   )
 }
