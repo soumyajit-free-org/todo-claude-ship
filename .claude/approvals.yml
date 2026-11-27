@@ -1,0 +1,25 @@
+# Claude Approvals policy for todo-claude-ship
+# Docs: https://code.claude.com/docs/en/approvals-policy
+#
+# Start in observe mode to see what Approvals would decide
+# without blocking any merges. Remove "mode: observe" to enforce.
+
+version: 1
+mode: observe
+
+rules:
+  # Default rule: two people must approve.
+  # When Claude's code review passes, one human is enough
+  # and Claude posts an approving review.
+  - purpose: "A change takes two people. When Claude's review passes, one is enough and Claude approves."
+    paths: ["**"]
+    verdict: { claude: comments, seats: 2 }
+    override:
+      - if: "claude/code_review = pass"
+        verdict: { claude: approves, seats: 1 }
+
+  # Protect the review rules themselves — always require two humans.
+  - purpose: "A change to the review rules takes two people."
+    paths: ["**/.claude/**"]
+    nested: inherit
+    verdict: { claude: comments, seats: 2 }
