@@ -94,6 +94,7 @@ export default function DashboardPage() {
           setNextCursor(resp.next_cursor)
           setTotalCount(resp.total_count)
           setLoadedKey(queryKey)
+          setFailure(null)
         }
       })
       .catch((err: unknown) => {
@@ -101,6 +102,9 @@ export default function DashboardPage() {
       })
     return () => { cancelled = true }
   }, [fetchTodos, setItems, queryKey])
+
+  const latestKey = useRef(queryKey)
+  latestKey.current = queryKey
 
   useEffect(() => {
     const timers = pendingDeletes.current
@@ -111,7 +115,9 @@ export default function DashboardPage() {
     if (!nextCursor || loadingMore) return
     setLoadingMore(true)
     try {
+      const startKey = queryKey
       const resp = await fetchTodos(nextCursor)
+      if (latestKey.current !== startKey) return
       setItems([...todos, ...resp.items])
       setNextCursor(resp.next_cursor)
       setTotalCount(resp.total_count)

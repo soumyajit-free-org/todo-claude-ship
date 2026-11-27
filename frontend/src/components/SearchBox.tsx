@@ -46,6 +46,7 @@ export default function SearchBox({ value, onChange }: Props) {
         }}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
+            clearTimeout(timer.current)
             setLocal('')
             onChange('')
             inputRef.current?.blur()
@@ -57,7 +58,7 @@ export default function SearchBox({ value, onChange }: Props) {
           type="button"
           className="search-clear btn-ghost"
           aria-label="Clear search"
-          onClick={() => { setLocal(''); onChange('') }}
+          onClick={() => { clearTimeout(timer.current); setLocal(''); onChange('') }}
         >
           ×
         </button>
